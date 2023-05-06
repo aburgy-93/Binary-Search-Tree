@@ -1,4 +1,4 @@
-import { LinkedList } from "./bst.js";
+import { LinkedList } from "./linkedList.js";
 
 class LinkListStack {
   constructor() {

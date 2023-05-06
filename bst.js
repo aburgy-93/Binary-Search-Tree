@@ -1,219 +1,388 @@
-class ListNode {
+class BSTNode {
   constructor(value) {
     this.value = value;
-    this.next = null;
-    // this.prev = null;
+    this.left = null;
+    this.right = null;
   }
 }
 
-export class LinkedList {
-  constructor() {
-    this.head = null;
-    this.tail = null;
-    this.size = 0;
+class BST {
+  constructor(data) {
+    this.root = this.buildTree(data);
+    console.log(this.root);
   }
+
+  buildTree(array) {
+    const sortedArray = this.sortedArray(array);
+    const deleteDupes = this.removeDuplicates(sortedArray);
+    let n = deleteDupes.length;
+    const root = this.sortedArrToBST(deleteDupes, 0, n - 1);
+
+    this.prettyPrint(root);
+
+    return root;
+  }
+
+  sortedArray(arr) {
+    arr.sort(function (a, b) {
+      return a - b;
+    });
+    return arr;
+  }
+
+  removeDuplicates(arr) {
+    let uniquArr = [...new Set(arr)];
+    return uniquArr;
+  }
+
+  sortedArrToBST(arr, start, end) {
+    if (start > end) return null;
+    const mid = Math.floor((start + end) / 2);
+    let node = new BSTNode(arr[mid]);
+    // [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324]
+
+    node.left = this.sortedArrToBST(arr, start, mid - 1);
+    node.right = this.sortedArrToBST(arr, mid + 1, end);
+    return node;
+  }
+
+  prettyPrint = (node, prefix = "", isLeft = true) => {
+    if (node === null) {
+      return;
+    }
+    if (node.right !== null) {
+      this.prettyPrint(
+        node.right,
+        `${prefix}${isLeft ? "│   " : "    "}`,
+        false
+      );
+    }
+    console.log(`${prefix}${isLeft ? "└── " : "┌── "}${node.value}`);
+    if (node.left !== null) {
+      this.prettyPrint(node.left, `${prefix}${isLeft ? "    " : "│   "}`, true);
+    }
+  };
 
   isEmpty() {
-    return this.size === 0;
+    return this.root === null;
   }
 
-  getSize() {
-    return this.size;
-  }
-
-  // 0(n)
-  append(value) {
-    const node = new ListNode(value);
+  insert(value) {
+    const newNode = new BSTNode(value);
     if (this.isEmpty()) {
-      this.head = node;
+      this.root = newNode;
     } else {
-      let prev = this.head;
-      // traversing to last node. advance previous pointer as long as its next element is not null
-      while (prev.next) {
-        prev = prev.next;
-      }
-      // make previous node point to newly created node
-      prev.next = node;
+      this.insertNode(this.root, newNode);
     }
-    this.size++;
   }
 
-  appendTail(value) {
-    const node = new ListNode(value);
-    if (this.isEmpty()) {
-      this.head = node;
-      this.tail = node;
+  insertNode(root, newNode) {
+    if (newNode.value < root.value) {
+      if (root.left === null) {
+        root.left = newNode;
+      } else {
+        this.insertNode(root.left, newNode);
+      }
     } else {
-      this.tail.next = node;
-      this.tail = node;
+      if (root.right === null) {
+        root.right = newNode;
+      } else {
+        this.insertNode(root.right, newNode);
+      }
     }
-    this.size++;
+    this.prettyPrint(root);
   }
 
-  prependWithTail(value) {
-    const node = new ListNode(value);
-    if (this.isEmpty()) {
-      this.head = node;
-      this.tail = node;
+  search(root, value) {
+    // break clause, if no root, return false
+    if (!root) {
+      return false;
+      // if there is a root, see if it is the value, then return is
     } else {
-      node.next = this.head;
-      this.head = node;
+      if (root.value === value) {
+        return true;
+        // if value is less than root value, recursively search left side
+      } else if (value < root.value) {
+        return this.search(root.left, value);
+        // if value is greater than root value, recursively search right side
+      } else {
+        return this.search(root.right, value);
+      }
     }
-    this.size++;
   }
 
-  // 0(1)
-  prepend(value) {
-    const node = new ListNode(value);
-    if (this.isEmpty()) {
-      this.head = node;
+  dfsPreorder(root) {
+    if (root) {
+      console.log(root.value);
+      this.dfsPreorder(root.left);
+      this.dfsPreorder(root.right);
+    }
+  }
+
+  dfsInorder(root) {
+    if (root) {
+      this.dfsInorder(root.left);
+      console.log(root.value);
+      this.dfsInorder(root.right);
+    }
+  }
+
+  dfsPostorder(root) {
+    if (root) {
+      this.dfsInorder(root.left);
+      this.dfsInorder(root.right);
+      console.log(root.value);
+    }
+  }
+
+  bfsLevelOrder() {
+    // Use optomised queue implementation from linkedList
+    const queue = [];
+    queue.push(this.root);
+    while (queue.length) {
+      let curr = queue.shift();
+      console.log(curr.value);
+      if (curr.left) {
+        queue.push(curr.left);
+      }
+      if (curr.right) {
+        queue.push(curr.right);
+      }
+    }
+  }
+
+  min(root) {
+    if (!root.left) {
+      return root.value;
     } else {
-      // this makes the new node's next value point at current head value
-      node.next = this.head;
-      // this changes the head value to the new node
-      this.head = node;
-    }
-    this.size++;
-  }
-
-  insert(value, index) {
-    if (index < 0 || index > this.size) return;
-    if (index === 0) this.prepend(value);
-    else {
-      const node = new ListNode(value);
-      // temporary value to keep track of previous value
-      let prev = this.head;
-      // traversing list and advance previous pointer until we reach desired index
-      for (let i = 0; i < index - 1; i++) {
-        // for loop exits when prev pointer is at previous node
-        prev = prev.next;
-      }
-      // new node next pointer to previous node next pointer
-      node.next = prev.next;
-      // have previous node next pointer point to node
-      prev.next = node;
-      this.size++;
+      return this.min(root.left);
     }
   }
 
-  removeFromFront() {
-    if (this.isEmpty()) return null;
-    const value = this.head.value;
-    this.head = this.head.next;
-    this.size--;
-    return value;
-  }
-
-  removeFromEnd() {
-    if (this.isEmpty()) return null;
-    const value = this.tail.value;
-    if (this.size === 1) {
-      this.head = null;
-      this.tail = null;
+  max(root) {
+    if (!root.right) {
+      return root.value;
     } else {
-      let prev = this.head;
-      while (prev.next !== this.tail) {
-        prev = prev.next;
-      }
-      prev.next = null;
-      this.tail = prev;
+      return this.min(root.right);
     }
-    this.size--;
-    return value;
   }
 
-  removeFrom(index) {
-    if (index < 0 || index >= this.size) return null;
-    let removeNode;
-    if (index === 0) {
-      removeNode = this.head;
-      this.head = this.head.next;
+  delete(value) {
+    this.root = this.deleteNode(this.root, value);
+    // No child nodes
+    // One child, remove node, replace with child
+    // Two child nodes, copy the value of inorder successor to node, and delete indorder successor (the inorder successor of a node (in BST) is the next node in the inorder traversal sequence). In BST the inorder successor is the node with the least value in its right subtree
+  }
+
+  deleteNode(root, value) {
+    if (root === null) {
+      return root;
+    }
+    if (value < root.value) {
+      root.left = this.deleteNode(root.left, value);
+    } else if (value > root.value) {
+      root.right = this.deleteNode(root.right, value);
     } else {
-      let prev = this.head;
-      for (let i = 0; i < index - 1; i++) {
-        prev = prev.next;
+      if (!root.left && !root.right) {
+        return null;
       }
-      removeNode = prev.next;
-      prev.next = removeNode.next;
+      if (!root.left) {
+        return root.right;
+      } else if (!root.right) {
+        return root.left;
+      }
+      root.value = this.min(root.right);
+      root.right = this.deleteNode(root.right, root.value);
     }
-    this.size--;
-    return removeNode.value;
+    return root;
   }
 
-  removeValue(value) {
-    if (this.isEmpty()) return null;
-    if (this.head.value === value) {
-      this.head = this.head.next;
-      this.size--;
-      return value;
-    } else {
-      let prev = this.head;
-      while (prev.next && prev.next.value !== value) {
-        prev = prev.next;
-      }
-      if (prev.next) {
-        let removeNode = prev.next;
-        prev.next = removeNode.next;
-        this.size--;
-        return value;
-      }
-      return null;
-    }
+  depth(root) {
+    if (!root) return 0;
+    return 1 + Math.max(this.depth(root.right), this.depth(root.left));
   }
 
-  search(value) {
-    if (this.isEmpty()) return -1;
-    let i = 0;
-    let curr = this.head;
-    while (curr) {
-      if (curr.value === value) {
-        return i;
-      }
-      curr = curr.next;
-      i++;
+  isBalanced(root = this.root) {
+    if (root === null) {
+      return true;
     }
-    return -1;
+    let leftHeight = this.depth(root.left);
+    let rightHeight = this.depth(root.right);
+
+    if (
+      Math.abs(leftHeight - rightHeight) <= 1 &&
+      this.isBalanced(root.left) === true &&
+      this.isBalanced(root.right) === true
+    ) {
+      return true;
+    }
+    return false;
   }
 
-  reverse() {
-    let prev = null;
-    let curr = this.head;
-    while (curr) {
-      let next = curr.next;
-      curr.next = prev;
-      prev = curr;
-      curr = next;
-    }
-    this.head = prev;
-  }
-
-  print() {
-    if (this.isEmpty()) {
-      console.log("List is empty");
-    } else {
-      let curr = this.head;
-      let listValues = "";
-      while (curr) {
-        listValues += `${curr.value} `;
-        curr = curr.next;
-      }
-      console.log(listValues);
-    }
+  rebalance(root = this.root) {
+    let arr = this.bfsLevelOrder([], [], root);
+    arr.sort((a, b) => a - b);
+    return (this.root = this.buildTree(arr));
   }
 }
 
-// const list = new LinkedList();
-// console.log("List is empty", list.isEmpty());
-// console.log("List size", list.getSize());
-// list.print();
+const bstArr = [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324];
 
-// list.appendTail(1);
-// list.appendTail(2);
-// list.appendTail(3);
-// list.prependWithTail(0);
-// list.print();
-// console.log("List size", list.getSize());
+const bst2 = new BST(bstArr);
+// bst2.insert(25);
+// bst2.insert(0);
+// console.log(bst2.search(bst2.root, 7));
+// bst2.dfsPreorder(bst2.root);
+// bst2.dfsInorder(bst2.root);
+// bst2.dfsPostorder(bst2.root);
+bst2.bfsLevelOrder();
+bst2.delete(3);
+bst2.bfsLevelOrder();
+console.log(bst2.depth(bst2.root));
+console.log(bst2.isBalanced(bst2.root));
 
-// list.removeFromFront();
-// list.removeFromEnd();
-// list.print();
+///////////////////////////////////////BST TOP////////////////////////////////////
+/*
+class Node {
+  constructor(value) {
+    this.value = value;
+    this.left = null;
+    this.right = null;
+  }
+}
+
+class bst {
+  constructor(data) {
+    this.root = this.buildTree(data);
+  }
+
+  buildTree(arr) {
+    const sortedArr = this.sortArray(arr);
+    const uniquArr = this.deleteDupes(sortedArr);
+    const n = uniquArr.length;
+    const root = this.sortedArrToBST(uniquArr, 0, n - 1);
+
+    return root;
+  }
+
+  // sort array
+  sortArray(array) {
+    array.sort(function (a, b) {
+      return a - b;
+    });
+    return array;
+  }
+
+  // delete duplicates
+  deleteDupes(array) {
+    let uniqueArr = [...new Set(array)];
+    return uniqueArr;
+  }
+
+  sortedArrToBST(arr, start, end) {
+    if (start > end) return null;
+    const mid = Math.floor((start + end) / 2);
+    let node = new Node(arr[mid]);
+    // [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324]
+
+    node.left = this.sortedArrToBST(arr, start, mid - 1);
+    node.right = this.sortedArrToBST(arr, mid + 1, end);
+    return node;
+  }
+
+  insert(value) {
+    let newNode = new Node(value);
+
+    const searchTree = (node) => {
+      if (value < node.value) {
+        if (!node.left) {
+          node.left = newNode;
+        } else {
+          searchTree(node.left);
+        }
+      } else if (value > node.value) {
+        if (!node.right) {
+          node.right = newNode;
+        } else {
+          searchTree(node.right);
+        }
+      }
+    };
+    searchTree(this.root);
+  }
+
+  delete(root, key) {
+    if (root === null) return root;
+    // delete a leaf
+    if (key < root.key) {
+      root.left = this.delete(root.left, key);
+    } else if (key > root.key) {
+      root.right = this.delete(root.right, key);
+    } else {
+      if (root.left === null) return root.right;
+      else if (root.right === null) return root.left;
+
+      // node with two children: get the inorder successor (smallest in the right subtree)
+      root.key = minValue(root.right);
+
+      // Delete the inorder successor
+      root.right = this.delete(root.right);
+    }
+    return root;
+    // delete node with one child
+    // delete node with two children
+    // --find the thing in the tree that is next biggest (right subtree and furthest left in subtree, this replaces with is being deleted)
+  }
+
+  minValue(root) {
+    let minv = root.key;
+    while (root.left != null) {
+      minv = root.left.key;
+      root = root.left;
+    }
+    return minv;
+  }
+
+  find(value) {
+    let currNode = this.root;
+
+    while (currNode) {
+      if (value === currNode.value) {
+        return true;
+      }
+      if (value < currNode.value) {
+        currNode = currNode.left;
+      } else {
+        currNode = currNode.right;
+      }
+    }
+
+    return false;
+  }
+
+  levelOrder() {}
+
+  dfsInOrder() {}
+
+  dfsPreOrder() {}
+
+  dfsPostOrder() {}
+
+  height() {}
+
+  depth() {}
+
+  isBalanced() {}
+
+  rebalance() {}
+}
+
+const testTree = new bst([1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324]);
+console.log(testTree);
+// const BST = new bst([]);
+// BST.insert(10);
+// testTree.insert(15);
+// console.log(testTree.root);
+// console.log(testTree.find(15));
+// testTree.delete(15);
+*/
