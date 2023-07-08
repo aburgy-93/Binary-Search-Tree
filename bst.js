@@ -1,52 +1,294 @@
-class BSTNode {
-  constructor(value) {
-    this.value = value;
+class Node {
+  constructor(data) {
+    this.data = data;
     this.left = null;
     this.right = null;
   }
 }
 
-class BST {
-  constructor(data) {
-    this.root = this.buildTree(data);
-    console.log(this.root);
+class Tree {
+  constructor(arr) {
+    this.root = this.buildTree(arr);
+    this.count = 1;
   }
 
-  buildTree(array) {
-    const sortedArray = this.sortedArray(array);
-    const deleteDupes = this.removeDuplicates(sortedArray);
-    let n = deleteDupes.length;
-    const root = this.sortedArrToBST(deleteDupes, 0, n - 1);
-
-    this.prettyPrint(root);
-
+  buildTree(arr) {
+    const uniqArr = [...new Set(arr)];
+    const n = uniqArr.length;
+    const uniqSrtArr = this.mergeSort(uniqArr);
+    const root = this.sortedArrToBTS(uniqSrtArr, 0, n - 1);
     return root;
   }
 
-  sortedArray(arr) {
-    arr.sort(function (a, b) {
-      return a - b;
-    });
-    return arr;
+  mergeSort(arr) {
+    if (arr.length < 2) {
+      return arr;
+    } else {
+      const mid = Math.floor(arr.length / 2);
+      const leftArr = arr.slice(0, mid);
+      const rightArr = arr.slice(mid);
+      return merge(this.mergeSort(leftArr), this.mergeSort(rightArr));
+    }
   }
 
-  removeDuplicates(arr) {
-    let uniquArr = [...new Set(arr)];
-    return uniquArr;
+  // need to remove duplicates either in merge or mergeSort
+  merge(leftArr, rightArr) {
+    const sortedArr = [];
+    while (leftArr.length && rightArr.length) {
+      if (leftArr[0] <= rightArr[0]) {
+        sortedArr.push(leftArr.shift());
+      } else {
+        sortedArr.push(rightArr.shift());
+      }
+    }
+
+    const srtArr = [...sortedArr, ...leftArr, ...rightArr];
+    return srtArr;
   }
 
-  sortedArrToBST(arr, start, end) {
-    if (start > end) return null;
-    const mid = Math.floor((start + end) / 2);
-    let node = new BSTNode(arr[mid]);
-    // [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324]
+  sortedArrToBTS(arr, start, end) {
+    if (start > end) {
+      return null;
+    }
+    let mid = parseInt((start + end) / 2);
+    let node = new Node(arr[mid]);
 
-    node.left = this.sortedArrToBST(arr, start, mid - 1);
-    node.right = this.sortedArrToBST(arr, mid + 1, end);
+    node.left = this.sortedArrToBTS(arr, start, mid - 1);
+    node.right = this.sortedArrToBTS(arr, mid + 1, end);
     return node;
   }
 
-  prettyPrint = (node, prefix = "", isLeft = true) => {
+  find(value) {
+    let currNode = this.root;
+    // if value == root, return root
+    while (currNode) {
+      if (currNode.data === null || currNode.data === value) {
+        return true;
+      }
+      if (value < currNode.data) {
+        currNode = currNode.left;
+      } else {
+        currNode = currNode.right;
+      }
+    }
+    return false;
+  }
+
+  insert(value) {
+    this.count++;
+
+    let newNode = new Node(value);
+
+    const searchTree = function (node) {
+      // compare new node with current node, if less, go left
+      if (value < node.data) {
+        // if no left child, append node
+        if (!node.left) {
+          node.left = newNode;
+        } else {
+          searchTree(node.left);
+        }
+      } else if (value > node.data) {
+        // if no right child, append node
+        if (!node.right) {
+          // append node
+          node.right = newNode;
+        } else {
+          searchTree(node.right);
+        }
+      }
+    };
+    searchTree(this.root);
+  }
+
+  min(root) {
+    if (!root.left) {
+      return root.data;
+    } else {
+      return this.min(root.left);
+    }
+  }
+
+  max(root) {
+    if (!root.right) {
+      return root.data;
+    } else {
+      return this.min(root.right);
+    }
+  }
+
+  delete(value) {
+    this.root = this.deleteNode(this.root, value);
+  }
+
+  deleteNode(root, value) {
+    if (root === null) {
+      return root;
+    }
+    if (value < root.data) {
+      root.left = this.deleteNode(root.left, value);
+    } else if (value > root.data) {
+      root.right = this.deleteNode(root.right, value);
+    } else {
+      // leaf node, no child nodes
+      if (!root.left && !root.right) {
+        return null;
+      }
+      // parent node has one child
+      if (!root.left) {
+        return root.right;
+      } else if (!root.right) {
+        return root.left;
+      }
+
+      // With two child nodes
+      // copy value of inorder successor
+      root.data = this.min(root.right);
+      // delete inorder succesor
+      root.right = this.deleteNode(root.right, root.data);
+    }
+    return root;
+  }
+
+  levelOrder() {
+    let result = [];
+    let queue = [];
+    if (this.root == null) return;
+
+    // push the root into the queue
+    queue.push(this.root);
+
+    while (queue.length) {
+      let currNode = queue.shift();
+      result.push(currNode.data);
+
+      if (currNode.left) {
+        queue.push(currNode.left);
+      }
+      if (currNode.right) {
+        queue.push(currNode.right);
+      }
+    }
+    // contunue until all nodes have been visited [F, D, J, B, E, G, K, A, C, I, H]
+    return result;
+  }
+
+  preOrder(node) {
+    if (node == null) return;
+
+    console.log(node.data);
+    this.preOrder(node.left);
+    this.preOrder(node.right);
+  }
+
+  postOrder(node) {
+    if (node == null) return;
+
+    this.postOrder(node.left);
+    this.postOrder(node.right);
+    console.log(node.data);
+  }
+
+  inOrder(node) {
+    if (node == null) return;
+
+    this.inOrder(node.left);
+    console.log(node.data);
+    this.inOrder(node.right);
+  }
+
+  depth(node) {
+    if (node == null) return 0;
+
+    let leftTDepth = this.depth(node.left);
+    let rightTDepth = this.depth(node.left);
+    if (leftTDepth > rightTDepth) {
+      return leftTDepth + 1;
+    } else {
+      return rightTDepth + 1;
+    }
+  }
+
+  height(node) {
+    if (node == null) return 0;
+    let height = 0;
+
+    let q = [];
+
+    q.push(node);
+    q.push(null);
+    while (q.length > 0) {
+      let temp = q.shift();
+
+      if (temp == null) {
+        height += 1;
+      }
+
+      if (temp != null) {
+        if (temp.left) {
+          q.push(temp.left);
+        }
+        if (temp.right) {
+          q.push(temp.right);
+        }
+      } else if (q.length > 0) {
+        q.push(null);
+      }
+    }
+    return height;
+  }
+
+  isBalanced(node) {
+    // check absolute difference between heights of left and right subtrees at any node < 1
+    // for each node, its left subtree shoud be a balanced binary tree
+    // for each node, its right subtree shoud be a balnaced binary tree
+    if (node == null) return true;
+    // check left subtree
+    let leftSubtreeHeight = this.height(node.left);
+    // check right subtree
+    let rightSubtreeHeight = this.height(node.right);
+
+    // check absolute heights of left/right subtrees, if greater than 1 return -1
+    if (
+      Math.abs(leftSubtreeHeight - rightSubtreeHeight) <= 1 &&
+      this.isBalanced(node.left) == true &&
+      this.isBalanced(node.right) == true
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  rebalance(root) {
+    let arr = [];
+    this.balancedInOrder(root, arr);
+    this.root = this.buildBalancedTree(arr);
+  }
+
+  balancedInOrder(root, arr) {
+    if (root == null) return;
+
+    this.balancedInOrder(root.left, arr);
+    arr.push(root.data);
+    this.balancedInOrder(root.right, arr);
+  }
+
+  buildBalancedTree(arr) {
+    if (arr.length == 0) return null;
+
+    let mid = Math.floor(arr.length / 2);
+    let head = new Node(arr[mid]);
+
+    let left = arr.slice(0, mid);
+    let right = arr.slice(mid + 1);
+
+    head.left = this.buildBalancedTree(left);
+    head.right = this.buildBalancedTree(right);
+
+    return head;
+  }
+
+  prettyPrint(node = this.root, prefix = "", isLeft = true) {
     if (node === null) {
       return;
     }
@@ -57,332 +299,41 @@ class BST {
         false
       );
     }
-    console.log(`${prefix}${isLeft ? "└── " : "┌── "}${node.value}`);
+    console.log(`${prefix}${isLeft ? "└── " : "┌── "}${node.data}`);
     if (node.left !== null) {
       this.prettyPrint(node.left, `${prefix}${isLeft ? "    " : "│   "}`, true);
     }
-  };
-
-  isEmpty() {
-    return this.root === null;
-  }
-
-  insert(value) {
-    const newNode = new BSTNode(value);
-    if (this.isEmpty()) {
-      this.root = newNode;
-    } else {
-      this.insertNode(this.root, newNode);
-    }
-  }
-
-  insertNode(root, newNode) {
-    if (newNode.value < root.value) {
-      if (root.left === null) {
-        root.left = newNode;
-      } else {
-        this.insertNode(root.left, newNode);
-      }
-    } else {
-      if (root.right === null) {
-        root.right = newNode;
-      } else {
-        this.insertNode(root.right, newNode);
-      }
-    }
-    this.prettyPrint(root);
-  }
-
-  search(root, value) {
-    // break clause, if no root, return false
-    if (!root) {
-      return false;
-      // if there is a root, see if it is the value, then return is
-    } else {
-      if (root.value === value) {
-        return true;
-        // if value is less than root value, recursively search left side
-      } else if (value < root.value) {
-        return this.search(root.left, value);
-        // if value is greater than root value, recursively search right side
-      } else {
-        return this.search(root.right, value);
-      }
-    }
-  }
-
-  dfsPreorder(root) {
-    if (root) {
-      console.log(root.value);
-      this.dfsPreorder(root.left);
-      this.dfsPreorder(root.right);
-    }
-  }
-
-  dfsInorder(root) {
-    if (root) {
-      this.dfsInorder(root.left);
-      console.log(root.value);
-      this.dfsInorder(root.right);
-    }
-  }
-
-  dfsPostorder(root) {
-    if (root) {
-      this.dfsInorder(root.left);
-      this.dfsInorder(root.right);
-      console.log(root.value);
-    }
-  }
-
-  bfsLevelOrder() {
-    // Use optomised queue implementation from linkedList
-    const queue = [];
-    queue.push(this.root);
-    while (queue.length) {
-      let curr = queue.shift();
-      console.log(curr.value);
-      if (curr.left) {
-        queue.push(curr.left);
-      }
-      if (curr.right) {
-        queue.push(curr.right);
-      }
-    }
-  }
-
-  min(root) {
-    if (!root.left) {
-      return root.value;
-    } else {
-      return this.min(root.left);
-    }
-  }
-
-  max(root) {
-    if (!root.right) {
-      return root.value;
-    } else {
-      return this.min(root.right);
-    }
-  }
-
-  delete(value) {
-    this.root = this.deleteNode(this.root, value);
-    // No child nodes
-    // One child, remove node, replace with child
-    // Two child nodes, copy the value of inorder successor to node, and delete indorder successor (the inorder successor of a node (in BST) is the next node in the inorder traversal sequence). In BST the inorder successor is the node with the least value in its right subtree
-  }
-
-  deleteNode(root, value) {
-    if (root === null) {
-      return root;
-    }
-    if (value < root.value) {
-      root.left = this.deleteNode(root.left, value);
-    } else if (value > root.value) {
-      root.right = this.deleteNode(root.right, value);
-    } else {
-      if (!root.left && !root.right) {
-        return null;
-      }
-      if (!root.left) {
-        return root.right;
-      } else if (!root.right) {
-        return root.left;
-      }
-      root.value = this.min(root.right);
-      root.right = this.deleteNode(root.right, root.value);
-    }
-    return root;
-  }
-
-  depth(root) {
-    if (!root) return 0;
-    return 1 + Math.max(this.depth(root.right), this.depth(root.left));
-  }
-
-  isBalanced(root = this.root) {
-    if (root === null) {
-      return true;
-    }
-    let leftHeight = this.depth(root.left);
-    let rightHeight = this.depth(root.right);
-
-    if (
-      Math.abs(leftHeight - rightHeight) <= 1 &&
-      this.isBalanced(root.left) === true &&
-      this.isBalanced(root.right) === true
-    ) {
-      return true;
-    }
-    return false;
-  }
-
-  rebalance(root = this.root) {
-    let arr = this.bfsLevelOrder([], [], root);
-    arr.sort((a, b) => a - b);
-    return (this.root = this.buildTree(arr));
   }
 }
 
-const bstArr = [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324];
+const randomArray = function (num) {
+  const arr = [];
 
-const bst2 = new BST(bstArr);
-// bst2.insert(25);
-// bst2.insert(0);
-// console.log(bst2.search(bst2.root, 7));
-// bst2.dfsPreorder(bst2.root);
-// bst2.dfsInorder(bst2.root);
-// bst2.dfsPostorder(bst2.root);
-bst2.bfsLevelOrder();
-bst2.delete(3);
-bst2.bfsLevelOrder();
-console.log(bst2.depth(bst2.root));
-console.log(bst2.isBalanced(bst2.root));
-
-///////////////////////////////////////BST TOP////////////////////////////////////
-/*
-class Node {
-  constructor(value) {
-    this.value = value;
-    this.left = null;
-    this.right = null;
-  }
-}
-
-class bst {
-  constructor(data) {
-    this.root = this.buildTree(data);
+  for (let i = 0; i < num; i++) {
+    arr.push(Math.round(Math.random() * 100 + 1));
   }
 
-  buildTree(arr) {
-    const sortedArr = this.sortArray(arr);
-    const uniquArr = this.deleteDupes(sortedArr);
-    const n = uniquArr.length;
-    const root = this.sortedArrToBST(uniquArr, 0, n - 1);
+  return arr;
+};
 
-    return root;
-  }
-
-  // sort array
-  sortArray(array) {
-    array.sort(function (a, b) {
-      return a - b;
-    });
-    return array;
-  }
-
-  // delete duplicates
-  deleteDupes(array) {
-    let uniqueArr = [...new Set(array)];
-    return uniqueArr;
-  }
-
-  sortedArrToBST(arr, start, end) {
-    if (start > end) return null;
-    const mid = Math.floor((start + end) / 2);
-    let node = new Node(arr[mid]);
-    // [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324]
-
-    node.left = this.sortedArrToBST(arr, start, mid - 1);
-    node.right = this.sortedArrToBST(arr, mid + 1, end);
-    return node;
-  }
-
-  insert(value) {
-    let newNode = new Node(value);
-
-    const searchTree = (node) => {
-      if (value < node.value) {
-        if (!node.left) {
-          node.left = newNode;
-        } else {
-          searchTree(node.left);
-        }
-      } else if (value > node.value) {
-        if (!node.right) {
-          node.right = newNode;
-        } else {
-          searchTree(node.right);
-        }
-      }
-    };
-    searchTree(this.root);
-  }
-
-  delete(root, key) {
-    if (root === null) return root;
-    // delete a leaf
-    if (key < root.key) {
-      root.left = this.delete(root.left, key);
-    } else if (key > root.key) {
-      root.right = this.delete(root.right, key);
-    } else {
-      if (root.left === null) return root.right;
-      else if (root.right === null) return root.left;
-
-      // node with two children: get the inorder successor (smallest in the right subtree)
-      root.key = minValue(root.right);
-
-      // Delete the inorder successor
-      root.right = this.delete(root.right);
-    }
-    return root;
-    // delete node with one child
-    // delete node with two children
-    // --find the thing in the tree that is next biggest (right subtree and furthest left in subtree, this replaces with is being deleted)
-  }
-
-  minValue(root) {
-    let minv = root.key;
-    while (root.left != null) {
-      minv = root.left.key;
-      root = root.left;
-    }
-    return minv;
-  }
-
-  find(value) {
-    let currNode = this.root;
-
-    while (currNode) {
-      if (value === currNode.value) {
-        return true;
-      }
-      if (value < currNode.value) {
-        currNode = currNode.left;
-      } else {
-        currNode = currNode.right;
-      }
-    }
-
-    return false;
-  }
-
-  levelOrder() {}
-
-  dfsInOrder() {}
-
-  dfsPreOrder() {}
-
-  dfsPostOrder() {}
-
-  height() {}
-
-  depth() {}
-
-  isBalanced() {}
-
-  rebalance() {}
-}
-
-const testTree = new bst([1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324]);
+const testTree = new Tree(randomArray(100));
 console.log(testTree);
-// const BST = new bst([]);
-// BST.insert(10);
-// testTree.insert(15);
-// console.log(testTree.root);
-// console.log(testTree.find(15));
-// testTree.delete(15);
-*/
+console.log(testTree.isBalanced());
+testTree.preOrder(testTree.root);
+testTree.postOrder(testTree.root);
+testTree.inOrder(testTree.root);
+testTree.insert(420);
+testTree.insert(500);
+testTree.insert(102);
+testTree.insert(320);
+testTree.insert(301);
+testTree.insert(302);
+testTree.insert(303);
+testTree.insert(304);
+testTree.insert(305);
+testTree.insert(306);
+testTree.prettyPrint();
+console.log(testTree.isBalanced(testTree.root));
+testTree.rebalance(testTree.root);
+console.log(testTree.isBalanced(testTree.root));
+testTree.prettyPrint();

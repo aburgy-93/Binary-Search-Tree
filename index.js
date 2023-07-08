@@ -1,3 +1,4 @@
+/*
 import { LinkedList } from "./linkedList.js";
 
 class LinkListStack {
@@ -79,3 +80,4 @@ queue.enqueue(20);
 queue.enqueue(30);
 console.log(queue.dequeue());
 queue.print();
+*/

@@ -1,3 +1,5 @@
+/*
+
 class ListNode {
   constructor(value) {
     this.value = value;
@@ -202,18 +204,167 @@ export class LinkedList {
   }
 }
 
-// const list = new LinkedList();
-// console.log("List is empty", list.isEmpty());
-// console.log("List size", list.getSize());
-// list.print();
+*/
+/////////////////////////Linked List//////////////////////////////////////////////
+class LinkedList {
+  constructor(head = null) {
+    this.head = head;
+    this.size = 0;
+  }
 
-// list.appendTail(1);
-// list.appendTail(2);
-// list.appendTail(3);
-// list.prependWithTail(0);
-// list.print();
-// console.log("List size", list.getSize());
+  append(value) {
+    let i = 0;
+    // create new node with value
+    const node = new Node(value);
+    // if the head is empty, have head point to new node
+    if (this.head == null) {
+      this.head = node;
+    } else {
+      // point to the previous node and advance pointer to next node if it exists
+      let prev = this.head;
+      // while prev.next exists(not null), make prev equal to the next node
+      while (prev.next) {
+        prev = prev.next;
+      }
+      // when prev.next is null, exit and make prev.next equal to the new node
+      prev.next = node;
+    }
+    this.size++;
+  }
 
-// list.removeFromFront();
-// list.removeFromEnd();
-// list.print();
+  preappend(value) {
+    const node = new Node(value);
+
+    if (this.head == null) {
+      this.head = node;
+    } else {
+      let prev = this.head;
+      this.head = node;
+      this.head.next = prev;
+    }
+    this.size++;
+  }
+
+  size() {
+    return this.size;
+  }
+
+  head() {
+    return this.head;
+  }
+
+  tail() {
+    if (this.head == null) {
+      return console.log("List empty. Please add your data.");
+    } else {
+      let prev = this.head;
+      while (prev.next) {
+        prev = prev.next;
+      }
+    }
+  }
+
+  at(index) {
+    let count = 0;
+    let curr = this.head;
+    if (this.head == null) {
+      return -1;
+    } else {
+      while (curr.next) {
+        if (count === index) {
+          return curr.data;
+        } else {
+          curr = curr.next;
+          count++;
+        }
+      }
+    }
+  }
+
+  pop() {
+    if (this.head == null) {
+      return;
+    } else {
+      let curr = this.head;
+      let prev = null;
+      while (curr.next) {
+        prev = curr;
+        curr = curr.next;
+      }
+      prev.next = curr.next;
+    }
+    this.size--;
+  }
+
+  contains(value) {
+    let curr = this.head;
+    if (this.head == null) {
+      return -1;
+    } else {
+      while (curr) {
+        if (value === curr.data) {
+          return true;
+        } else {
+          curr = curr.next;
+        }
+      }
+      return false;
+    }
+  }
+
+  find(value) {
+    let count = 0;
+    let curr = this.head;
+    if (this.head == null) {
+      return -1;
+    } else {
+      while (curr) {
+        if (value === curr.data) {
+          return count;
+        } else {
+          curr = curr.next;
+          count++;
+        }
+      }
+    }
+  }
+
+  toString() {
+    let curr = this.head;
+    if (this.head == null) {
+      return -1;
+    } else {
+      let listValues = " ";
+      while (curr) {
+        listValues += `(${curr.data}) -> `;
+        curr = curr.next;
+      }
+      return (listValues += "null");
+    }
+  }
+
+  ////////////////////////////EXTRA CREDIT//////////////////////////////////
+  insertAt(value, index) {}
+
+  removeAt(index) {}
+}
+
+class Node {
+  constructor(data = null, next = null) {
+    this.data = data;
+    this.next = next;
+  }
+}
+
+const list = new LinkedList();
+list.append(4);
+list.append(420);
+list.append(69);
+list.append(100);
+list.append(2);
+list.preappend(42069);
+// console.log(list.at(4));
+// console.log(list.contains(2));
+// console.log(list.find(2));
+// console.log(list);
+// console.log(list.toString());
